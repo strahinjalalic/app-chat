@@ -15,15 +15,33 @@ app.use(express.static(publicPath));
 io.on("connection", (socket) => {//server izvrsava neku akciju kada se novi user konektuje
 	console.log("New user connected");
 
-	socket.emit("newMessage", {//server emituje akciju ka klijentu emit() metodom, ime metoda mora da se podudara sa imenom na klijent strani
-		from: "Andrew",
-		text: "Hey. What's going on?",
-		createdAt: 123
+	socket.emit("newMessage", {
+		from: Admin,
+		text: "Welcome to the chat app!",
+		createdAt: new Date().getTime()
+	});
+
+	socket.broadcast.emit("newMessage", {
+		from: Admin,
+		text: "New user has joined chatt app",
+		createdAt: new Date().getTime()
 	});
 
 	socket.on("createMessage", (message) => {
 		console.log("New message", message);
-	})
+		io.emit("newMessage", {  //ovim metodom server emituje poruku svakom user-u sa otvorenom konekcijom(pravi se poruka u Consoli ali socket.emit(createMessage) metodom, videce se i u drugom tabu poruka)
+			from: message.from,
+			text: message.text,
+			createdAt: new Date().getTime()
+		});
+
+
+		// socket.broadcast.emit("newMessage", {  // broadcast => svima ce se emitovati poruka osim onom ko salje tu poruku
+		// 	from: message.from,
+		// 	text: message.text,
+		// 	createdAt: new Date().getTime()
+		// });
+	});
 
 	socket.on("disconnect", () => {
 		console.log("User disconnected");//printuje se u terminalu kad se iskljuci chrome(tj. tab u kome prikazujemo stranicu)
