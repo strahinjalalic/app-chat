@@ -3,6 +3,7 @@ const publicPath = path.join(__dirname + "../public"); //izlazi se iz server fol
 var http = require("http");
 var socketIO = require("socket.io");
 const express = require("express");
+const {generateMessage} = require("./utils/message")
 const port = process.env.PORT || 3000;
 
 var app = express();
@@ -15,25 +16,13 @@ app.use(express.static(publicPath));
 io.on("connection", (socket) => {//server izvrsava neku akciju kada se novi user konektuje
 	console.log("New user connected");
 
-	socket.emit("newMessage", {
-		from: Admin,
-		text: "Welcome to the chat app!",
-		createdAt: new Date().getTime()
-	});
+	socket.emit("newMessage", generateMessage("Admin", "Welcome to the chat app"));
 
-	socket.broadcast.emit("newMessage", {
-		from: Admin,
-		text: "New user has joined chatt app",
-		createdAt: new Date().getTime()
-	});
+	socket.broadcast.emit("newMessage", generateMessage("Admin", "New user joined"));
 
 	socket.on("createMessage", (message) => {
 		console.log("New message", message);
-		io.emit("newMessage", {  //ovim metodom server emituje poruku svakom user-u sa otvorenom konekcijom(pravi se poruka u Consoli ali socket.emit(createMessage) metodom, videce se i u drugom tabu poruka)
-			from: message.from,
-			text: message.text,
-			createdAt: new Date().getTime()
-		});
+		io.emit("newMessage", generateMessage(message.from, message.text)) //ovim metodom server emituje poruku svakom user-u sa otvorenom konekcijom(pravi se poruka u Consoli ali socket.emit(createMessage) metodom, videce se i u drugom tabu poruka;
 
 
 		// socket.broadcast.emit("newMessage", {  // broadcast => svima ce se emitovati poruka osim onom ko salje tu poruku
