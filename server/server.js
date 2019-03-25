@@ -1,5 +1,5 @@
 const path = require("path"); //built-in module, ne mora da se instalira u terminalu
-const publicPath = path.join(__dirname + "../public"); //izlazi se iz server foldera i ulazi u public => koristi se join() zato sto u apsolutnoj putanji ne belezi ulazak u server pa izlazak iz njega, vec samo ulazak u public 
+const publicPath = path.join(__dirname + "./../public"); //izlazi se iz server foldera i ulazi u public => koristi se join() zato sto u apsolutnoj putanji ne belezi ulazak u server pa izlazak iz njega, vec samo ulazak u public 
 var http = require("http");
 var socketIO = require("socket.io");
 const express = require("express");
@@ -20,10 +20,10 @@ io.on("connection", (socket) => {//server izvrsava neku akciju kada se novi user
 
 	socket.broadcast.emit("newMessage", generateMessage("Admin", "New user joined"));
 
-	socket.on("createMessage", (message) => {
+	socket.on("createMessage", (message, callback) => {
 		console.log("New message", message);
-		io.emit("newMessage", generateMessage(message.from, message.text)) //ovim metodom server emituje poruku svakom user-u sa otvorenom konekcijom(pravi se poruka u Consoli ali socket.emit(createMessage) metodom, videce se i u drugom tabu poruka;
-
+		io.emit("newMessage", generateMessage(message.from, message.text)); //ovim metodom server emituje poruku svakom user-u sa otvorenom konekcijom(pravi se poruka u Consoli ali socket.emit(createMessage) metodom, videce se i u drugom tabu poruka;
+		callback("This is from the server"); //odnosi se na event acknowledgement callback
 
 		// socket.broadcast.emit("newMessage", {  // broadcast => svima ce se emitovati poruka osim onom ko salje tu poruku
 		// 	from: message.from,
