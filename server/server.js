@@ -3,7 +3,7 @@ const publicPath = path.join(__dirname + "./../public"); //izlazi se iz server f
 var http = require("http");
 var socketIO = require("socket.io");
 const express = require("express");
-const {generateMessage} = require("./utils/message")
+const {generateMessage, generateLocationMessage} = require("./utils/message")
 const port = process.env.PORT || 3000;
 
 var app = express();
@@ -24,12 +24,10 @@ io.on("connection", (socket) => {//server izvrsava neku akciju kada se novi user
 		console.log("New message", message);
 		io.emit("newMessage", generateMessage(message.from, message.text)); //ovim metodom server emituje poruku svakom user-u sa otvorenom konekcijom(pravi se poruka u Consoli ali socket.emit(createMessage) metodom, videce se i u drugom tabu poruka;
 		callback("This is from the server"); //odnosi se na event acknowledgement callback
+	});
 
-		// socket.broadcast.emit("newMessage", {  // broadcast => svima ce se emitovati poruka osim onom ko salje tu poruku
-		// 	from: message.from,
-		// 	text: message.text,
-		// 	createdAt: new Date().getTime()
-		// });
+	socket.on("createLocationMessage", (coords) => {
+		io.emit("newLocationMessage", generateLocationMessage("Admin", coords.latitude, coords.longitude));
 	});
 
 	socket.on("disconnect", () => {
