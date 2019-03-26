@@ -5,9 +5,11 @@ var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socke
 
   	socket.on("newMessage", function(message) {//argument koji prosledjujemo je zapravo objekat kreiran na server strani
   		console.log("newMessage", message);
+      var formattedTime = moment(message.createdAt).format("h:mm a"); // ne moramo da ucitamo biblioteku ovde, ucitavamo moment.js kao skriptu unutar html strane
+
 
       var li = jQuery("<li></li>");
-      li.text(`${message.from}: ${message.text}`);
+      li.text(`${message.from} ${formattedTime}: ${message.text}`);
       jQuery("#messages").append(li);
   	});
 
@@ -15,23 +17,25 @@ var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socke
   		console.log("Disconnected from server");
   	});
 
-    jQuery("#message-form").on("submit", function(e) {
-      e.preventDefault();//sprecavamo refresh stranice i pojavu key/value para u URL baru => zapravo sprecavaju se sve defaultne akcije submita
-      var messageTextbox = jQuery('[name=message]');
+      jQuery("#message-form").on("submit", function(e) {
+        e.preventDefault();//sprecavamo refresh stranice i pojavu key/value para u URL baru => zapravo sprecavaju se sve defaultne akcije submita
+        var messageTextbox = jQuery('[name=message]');
 
-      socket.emit("createMessage", {
-        from: "User",
-        text: messageTextbox.val()
-      }, function() {
-        messageTextbox.val(""); //praznjenje textbox-a nakon slanja poruke
+        socket.emit("createMessage", {
+          from: "User",
+          text: messageTextbox.val()
+        }, function() {
+          messageTextbox.val(""); //praznjenje textbox-a nakon slanja poruke
+        });
       });
-    });
 
     socket.on("newLocationMessage", function(message) {
       var li = jQuery("<li></li>");
       var a = jQuery("<a target='blank'>My current location</a>");
+      var formattedTime = moment(message.createdAt).format("h:mm a");
 
-      li.text(`${message.from}:`);
+
+      li.text(`${message.from} ${formattedTime}: `);
       a.attr("href", message.url);
       li.append(a);
       jQuery("#messages").append(li);
