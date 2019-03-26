@@ -23,7 +23,7 @@ io.on("connection", (socket) => {//server izvrsava neku akciju kada se novi user
 	socket.on("createMessage", (message, callback) => {
 		console.log("New message", message);
 		io.emit("newMessage", generateMessage(message.from, message.text)); //ovim metodom server emituje poruku svakom user-u sa otvorenom konekcijom(pravi se poruka u Consoli ali socket.emit(createMessage) metodom, videce se i u drugom tabu poruka;
-		callback("This is from the server"); //odnosi se na event acknowledgement callback
+		callback(); //odnosi se na event acknowledgement callback => potencijalni argument koji se prosledjuje je odgovor servera na poslat event acknowledge
 	});
 
 	socket.on("createLocationMessage", (coords) => {

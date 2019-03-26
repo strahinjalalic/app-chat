@@ -17,12 +17,13 @@ var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socke
 
     jQuery("#message-form").on("submit", function(e) {
       e.preventDefault();//sprecavamo refresh stranice i pojavu key/value para u URL baru => zapravo sprecavaju se sve defaultne akcije submita
-    
+      var messageTextbox = jQuery('[name=message]');
+
       socket.emit("createMessage", {
         from: "User",
-        text: jQuery('[name=message]').val()
+        text: messageTextbox.val()
       }, function() {
-
+        messageTextbox.val(""); //praznjenje textbox-a nakon slanja poruke
       });
     });
 
@@ -42,13 +43,17 @@ var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socke
         return alert("Your browser doesn't support geolocation");
       }
 
+      locationButton.attr("disabled", "disabled").text("Sending location...");
+
       navigator.geolocation.getCurrentPosition(function(position){
-        console.log(position);
+        // console.log(position);
+        locationButton.removeAttr("disabled").text("Send location");
         socket.emit("createLocationMessage", {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
         });
       }, function() {
+        locationButton.removeAttr("disabled").text("Send location");
         alert("Unable to fetch location");
       });
     });
