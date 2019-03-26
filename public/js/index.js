@@ -4,13 +4,15 @@ var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socke
   	});
 
   	socket.on("newMessage", function(message) {//argument koji prosledjujemo je zapravo objekat kreiran na server strani
-  		console.log("newMessage", message);
-      var formattedTime = moment(message.createdAt).format("h:mm a"); // ne moramo da ucitamo biblioteku ovde, ucitavamo moment.js kao skriptu unutar html strane
+  	  var formattedTime = moment(message.createdAt).format("h:mm a"); // ne moramo da ucitamo biblioteku ovde, ucitavamo moment.js kao skriptu unutar html strane
+      var template = jQuery("#message-template").html();
+      var html = Mustache.render(template, {
+        text: message.text,
+        from: message.from,
+        createdAt: formattedTime
+      });
 
-
-      var li = jQuery("<li></li>");
-      li.text(`${message.from} ${formattedTime}: ${message.text}`);
-      jQuery("#messages").append(li);
+      jQuery("#messages").append(html);
   	});
 
   	socket.on("disconnect", function() {//arrow functions ce se renderovati samo na chrome-u, zato se koriste regular functions
@@ -30,15 +32,15 @@ var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socke
       });
 
     socket.on("newLocationMessage", function(message) {
-      var li = jQuery("<li></li>");
-      var a = jQuery("<a target='blank'>My current location</a>");
-      var formattedTime = moment(message.createdAt).format("h:mm a");
+        var formattedTime = moment(message.createdAt).format("h:mm a");
+        var template = jQuery("#location-message-template").html();
+        var html = Mustache.render(template, {
+          from: message.from,
+          createdAt: formattedTime,
+          url: message.url
+        });
 
-
-      li.text(`${message.from} ${formattedTime}: `);
-      a.attr("href", message.url);
-      li.append(a);
-      jQuery("#messages").append(li);
+        jQuery("#messages").append(html);
     });
 
     var locationButton = jQuery("#send-location");
