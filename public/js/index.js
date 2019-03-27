@@ -3,6 +3,23 @@ var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socke
   		console.log("Connected to server");//metod se izvrsava na klijent strani
   	});
 
+    function scrollToBottom() {//funkcija koja ce skrolovati na dole automatski pri pisanju poruka, a ukoliko smo mi skrolovali malo vise na gore, nece nas spustati dole kada dodje nova poruka
+      //Selektori
+      var messages = jQuery("#messages");
+      var newMessage = messages.children("li:last-child");
+      //Heights
+      var clientHeight = messages.prop("clientHeight");
+      var scrollTop = messages.prop("scrollTop");
+      var scrollHeight = messages.prop("scrollHeight");
+      var newMessageHeight = newMessage.innerHeight();
+      var lastMessageHeight = newMessage.prev().innerHeight();
+
+      if(clientHeight + scrollTop + newMessageHeight + lastMessageHeight >= scrollHeight) {
+          messages.scrollTop(scrollHeight);//metod koji skroluje
+      }
+    };
+
+
   	socket.on("newMessage", function(message) {//argument koji prosledjujemo je zapravo objekat kreiran na server strani
   	  var formattedTime = moment(message.createdAt).format("h:mm a"); // ne moramo da ucitamo biblioteku ovde, ucitavamo moment.js kao skriptu unutar html strane
       var template = jQuery("#message-template").html();
@@ -13,6 +30,7 @@ var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socke
       });
 
       jQuery("#messages").append(html);
+      scrollToBottom(); //poziva se nakon appenda => logicno
   	});
 
   	socket.on("disconnect", function() {//arrow functions ce se renderovati samo na chrome-u, zato se koriste regular functions
@@ -41,6 +59,7 @@ var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socke
         });
 
         jQuery("#messages").append(html);
+        scrollToBottom();
     });
 
     var locationButton = jQuery("#send-location");
