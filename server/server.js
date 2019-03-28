@@ -3,12 +3,16 @@ const publicPath = path.join(__dirname + "./../public"); //izlazi se iz server f
 var http = require("http");
 var socketIO = require("socket.io");
 const express = require("express");
-const {generateMessage, generateLocationMessage} = require("./utils/message")
+
+const {generateMessage, generateLocationMessage} = require("./utils/message");
+const {isRealString} = require("./utils/validation");
+const {Users} = require('./utils/users');
 const port = process.env.PORT || 3000;
 
 var app = express();
 var server = http.createServer(app); // ovaj metod je inace deo listen() metoda, ali je pravilnije listen() pozivati sa server promenljivom u ovom slucaju
 var io = socketIO(server); // konfigursanje servera da takodje koristi socketIO
+var users = new Users();
 
 app.use(express.static(publicPath));
 
@@ -16,9 +20,20 @@ app.use(express.static(publicPath));
 io.on("connection", (socket) => {//server izvrsava neku akciju kada se novi user konektuje
 	console.log("New user connected");
 
-	socket.emit("newMessage", generateMessage("Admin", "Welcome to the chat app"));
+	socket.on("join", (params, callback) => {
+		if(!isRealString(params.name) || !isRealString(params.room)){
+			return callback("Name and room name are required!");
+		}
 
-	socket.broadcast.emit("newMessage", generateMessage("Admin", "New user joined"));
+		socket.join(params.room); //pridruzje user-a grupi kojoj zeli da pristupi(samo clanovi grupe vide poruke)
+		users.removeUser(socket.id);
+		users.addUser(socket.id, params.name, params.room);
+
+		io.to(params.room).emit("updateUserList", users.getUsersList(params.room));
+		socket.emit("newMessage", generateMessage("Admin", "Welcome to the chat app"));
+		socket.broadcast.to(params.room).emit("newMessage", generateMessage("Admin", `${params.name} has joined the room!`));//prikazuje se poruka svima u grupi osim user-u koji se priduzio
+		callback();
+	});
 
 	socket.on("createMessage", (message, callback) => {
 		console.log("New message", message);
@@ -31,7 +46,12 @@ io.on("connection", (socket) => {//server izvrsava neku akciju kada se novi user
 	});
 
 	socket.on("disconnect", () => {
-		console.log("User disconnected");//printuje se u terminalu kad se iskljuci chrome(tj. tab u kome prikazujemo stranicu)
+		var user = users.removeUser(socket.id); //uklanjamo korisnika pri diskonektovanju sa stranice
+
+		if(user) {
+			io.to(user.room).emit("updateUserList", users.getUsersList(user.room));//update-ujemo listu korisnika kada jedan korisnik napusti stranicu
+			io.to(user.room).emit("newMessage", generateMessage("Admin", `${user.name} has left`));
+		}
 	});
 }); 
 

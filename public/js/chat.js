@@ -1,9 +1,19 @@
 var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socketa i odrzavanje te konekcije otvorenom
-  	socket.on("connect", function() {
-  		console.log("Connected to server");//metod se izvrsava na klijent strani
+  	
+    socket.on("connect", function() {
+  	 var params = jQuery.deparam(window.location.search); //metod koji uzima string iz search url bara i konvertuje ga u key/value parove
+
+     socket.emit("join", params, function(err){
+      if(err){
+        alert(err);
+        window.location.href = "/";
+      } else {
+        console.log("No errors");
+      }
+     });
   	});
 
-    function scrollToBottom() {//funkcija koja ce skrolovati na dole automatski pri pisanju poruka, a ukoliko smo mi skrolovali malo vise na gore, nece nas spustati dole kada dodje nova poruka
+    function scrollToBottom() {//funkcija koja ce skrolovati na dole automatski pri pisanju poruka, a ukoliko smo mi skrolovali malo vise na gore(iznad poslednje poruke), nece nas spustati dole kada dodje nova poruka
       //Selektori
       var messages = jQuery("#messages");
       var newMessage = messages.children("li:last-child");
@@ -36,6 +46,16 @@ var socket = io();//pravimo zahtev od klijenta ka serveru za otvaranje web socke
   	socket.on("disconnect", function() {//arrow functions ce se renderovati samo na chrome-u, zato se koriste regular functions
   		console.log("Disconnected from server");
   	});
+
+    socket.on("updateUserList", function(users) {
+      var ol = jQuery("<ol></ol>");
+
+      users.forEach(function(user) {
+        ol.append(jQuery("<li></li>").text(user));
+      });
+
+      jQuery("#users").html(ol);
+    });
 
       jQuery("#message-form").on("submit", function(e) {
         e.preventDefault();//sprecavamo refresh stranice i pojavu key/value para u URL baru => zapravo sprecavaju se sve defaultne akcije submita
