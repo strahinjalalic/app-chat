@@ -36,13 +36,21 @@ io.on("connection", (socket) => {//server izvrsava neku akciju kada se novi user
 	});
 
 	socket.on("createMessage", (message, callback) => {
-		console.log("New message", message);
-		io.emit("newMessage", generateMessage(message.from, message.text)); //ovim metodom server emituje poruku svakom user-u sa otvorenom konekcijom(pravi se poruka u Consoli ali socket.emit(createMessage) metodom, videce se i u drugom tabu poruka;
+		var user = users.getUser(socket.id);
+
+		if(user && isRealString(message.text)) {
+			io.to(user.room).emit("newMessage", generateMessage(user.name, message.text)); 
+		}
+
 		callback(); //odnosi se na event acknowledgement callback => potencijalni argument koji se prosledjuje je odgovor servera na poslat event acknowledge
 	});
 
 	socket.on("createLocationMessage", (coords) => {
-		io.emit("newLocationMessage", generateLocationMessage("Admin", coords.latitude, coords.longitude));
+		var user = users.getUser(socket.id);
+
+		if(user) {
+	       io.to(user.room).emit("newLocationMessage", generateLocationMessage(user.name, coords.latitude, coords.longitude));	
+		}
 	});
 
 	socket.on("disconnect", () => {
@@ -59,3 +67,5 @@ io.on("connection", (socket) => {//server izvrsava neku akciju kada se novi user
 server.listen(port, () => {
 	console.log(`Server je pokrenut na portu ${port}`);
 });
+
+//io.emit("newMessage", generateMessage(message.from, message.text)) => ovim metodom server emituje poruku svakom user-u sa otvorenom konekcijom(pravi se poruka u Consoli ali socket.emit(createMessage) metodom, videce se i u drugom tabu poruka;
